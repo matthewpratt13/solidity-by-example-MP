@@ -29,17 +29,18 @@ contract CrowdFund {
     event Pledge(uint256 indexed campaignId, address indexed caller, uint256 amount);
     event Withdraw(uint256 indexed campaignId, address indexed to, uint256 indexed amount);
 
-    // modifier onlyActive(uint256 startTime, uint256 endTime) {
-    //     require(block.timestamp >= startTime, "Campaign has not started");
-    //     require(block.timestamp <= endTime, "Campaign has ended");
-    //     _;
-    // }
-
     modifier onlyActive(uint256 campaignId) {
         Campaign memory campaign = campaigns[campaignId];
 
         require(block.timestamp >= campaign.startTime, "Campaign has not started");
         require(block.timestamp <= campaign.endTime, "Campaign has ended");
+        _;
+    }
+
+    modifier onlyInactive(uint256 campaignId) {
+        Campaign memory campaign = campaigns[campaignId];
+
+        require(block.timestamp > campaign.endTime, "Campaign has not ended");
         _;
     }
 
@@ -112,10 +113,8 @@ contract CrowdFund {
         emit Withdraw(_campaignId, msg.sender, _amount);
     }
 
-    function reclaimPledge(uint256 _campaignId) external {
+    function reclaimPledge(uint256 _campaignId) external onlyInactive(_campaignId) {
         Campaign memory campaign = campaigns[_campaignId];
-
-        require(block.timestamp > campaign.endTime, "Campaign has not ended");
 
         require(campaign.amountPledged < campaign.target, "Target has been reached");
 
@@ -128,12 +127,10 @@ contract CrowdFund {
         emit Withdraw(_campaignId, msg.sender, refundAmount);
     }
 
-    function withdraw(uint256 _campaignId) external {
+    function withdraw(uint256 _campaignId) external onlyInactive(_campaignId) {
         require(msg.sender == owner, "Caller is not the creator");
 
         Campaign storage campaign = campaigns[_campaignId];
-
-        require(block.timestamp > campaign.endTime, "Campaign has not ended");
 
         require(campaign.amountPledged >= campaign.target, "Amount pledged is below target");
 
