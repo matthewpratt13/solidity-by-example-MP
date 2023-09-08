@@ -6,25 +6,9 @@ import "forge-std/Test.sol";
 import "src/ERC20.sol";
 import "src/CoinSwap.sol";
 
-contract CoinA is ERC20 {
-    constructor() ERC20("Coin A", "COINA", 18) {}
-
-    function mint(address _to, uint256 _amount) public {
-        _mint(_to, _amount);
-    }
-}
-
-contract CoinB is ERC20 {
-    constructor() ERC20("Coin B", "COINB", 18) {}
-
-    function mint(address _to, uint256 _amount) public {
-        _mint(_to, _amount);
-    }
-}
-
 contract CoinSwapTest is Test {
-    CoinA public coinA;
-    CoinB public coinB;
+    ERC20 public coinA;
+    ERC20 public coinB;
 
     address public alice = vm.addr(1);
     address public bob = vm.addr(2);
@@ -35,8 +19,8 @@ contract CoinSwapTest is Test {
     event Swap(address indexed ownerA, address indexed ownerB, uint256 amountA, uint256 amountB);
 
     function setUp() public {
-        coinA = new CoinA();
-        coinB = new CoinB();
+        coinA = new ERC20("Coin A", "COINA", 18);
+        coinB = new ERC20("Coin B", "COINB", 18);
 
         coinA.mint(alice, 10_000);
         coinB.mint(bob, 10_000);

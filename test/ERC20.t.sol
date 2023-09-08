@@ -5,26 +5,8 @@ import "forge-std/Test.sol";
 
 import "src/ERC20.sol";
 
-contract MockERC20 is ERC20 {
-    address public contractOwner;
-
-    constructor() ERC20("Coin", "COIN", 18) {
-        contractOwner = msg.sender;
-    }
-
-    function mint(address _to, uint256 _amount) public {
-        require(msg.sender == contractOwner, "Caller is not the contract owner");
-        _mint(_to, _amount);
-    }
-
-    function burn(address _from, uint256 _amount) public {
-        require(msg.sender == contractOwner, "Caller is not the contract owner");
-        _burn(_from, _amount);
-    }
-}
-
 contract ERC20Test is Test {
-    MockERC20 public coin;
+    ERC20 public coin;
 
     address accountA = vm.addr(1);
     address accountB = vm.addr(2);
@@ -33,7 +15,7 @@ contract ERC20Test is Test {
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 
     function setUp() public {
-        coin = new MockERC20();
+        coin = new ERC20("Coin", "COIN", 18);
         coin.mint(address(this), 1_000_000);
     }
 
@@ -107,7 +89,7 @@ contract ERC20Test is Test {
     }
 
     function testRevertWhenNonOwnerMintsERC20() public {
-        vm.expectRevert("Caller is not the contract owner");
+        vm.expectRevert("Caller is not the owner");
 
         vm.prank(accountA);
         coin.mint(accountA, 10_000);
@@ -133,7 +115,7 @@ contract ERC20Test is Test {
     function testRevertWhenNonOwnerBurnsERC20() public {
         coin.mint(accountA, 10_000);
 
-        vm.expectRevert("Caller is not the contract owner");
+        vm.expectRevert("Caller is not the owner");
 
         vm.prank(accountA);
         coin.burn(accountA, 1_000);
