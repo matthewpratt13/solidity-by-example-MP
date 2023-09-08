@@ -3,6 +3,14 @@ pragma solidity 0.8.19;
 
 import "./ERC721.sol";
 
+interface IERC721 {
+    function approve(address spender, uint256 id) external;
+    function setApprovalForAll(address operator, bool isApproved) external;
+    function transferFrom(address from, address to, uint256 id) external;
+    function safeTransferFrom(address from, address to, uint256 id) external;
+    function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) external;
+}
+
 contract Auction {
     enum AuctionStatus {
         Inactive,
