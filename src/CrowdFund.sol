@@ -152,12 +152,6 @@ contract CrowdFund {
         emit Withdraw(_campaignId, campaign.creator, campaign.amountPledged);
     }
 
-    function setCurrency(address _newCoinAddress, uint256 _campaignId) external onlyOwner onlyInactive(_campaignId) {
-        coin = ERC20(_newCoinAddress);
-
-        emit SetCurrency(_newCoinAddress);
-    }
-
     function transferOwnership(address _newOwner) external onlyOwner {
         owner = _newOwner;
 
