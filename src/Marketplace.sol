@@ -35,6 +35,8 @@ contract Marketplace {
 
     event CreateSale(uint256 indexed saleId, address indexed tokenAddress, uint256 tokenPrice);
 
+    event CancelSale(uint256 indexed saleId);
+
     function createSale(
         address _tokenAddress,
         uint256[] calldata _tokenIds,
@@ -67,5 +69,23 @@ contract Marketplace {
         nft.safeBatchTransferFrom(msg.sender, address(this), _tokenIds, _tokenAmountsForSale, "");
 
         emit CreateSale(saleId, _tokenAddress, _tokenPrice);
+    }
+
+    function cancelSale(uint256 _saleId) external {
+        require(_saleId < saleIdCounter, "Sale does not exist");
+
+        SaleInfo storage sale = sales[_saleId];
+
+        require(sale.saleStatus == SaleStatus.Active, "Sale is inactive");
+
+        require(msg.sender == sale.seller, "Caller must be sale creator");
+
+        sales[_saleId].saleStatus = SaleStatus.Inactive;
+
+        IERC1155 nft = IERC1155(sale.tokenAddress);
+
+        nft.safeBatchTransferFrom(address(this), msg.sender, sale.tokenIds, sale.tokenAmountsForSale, "");
+
+        emit CancelSale(_saleId);
     }
 }
