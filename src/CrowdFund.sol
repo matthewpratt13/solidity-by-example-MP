@@ -28,7 +28,6 @@ contract CrowdFund {
     event CancelCampaign(uint256 indexed campaignId);
     event Pledge(uint256 indexed campaignId, address indexed caller, uint256 amount);
     event Withdraw(uint256 indexed campaignId, address indexed to, uint256 indexed amount);
-    event SetCurrency(address indexed coinAddress);
     event OwnershipTransferred(address indexed user, address indexed newOwner);
 
     modifier onlyOwner() {
