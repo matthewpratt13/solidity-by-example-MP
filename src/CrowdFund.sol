@@ -88,11 +88,8 @@ contract CrowdFund {
         emit CancelCampaign(_campaignId);
     }
 
-    function pledge(uint256 _campaignId, uint256 _amount) external {
+    function pledge(uint256 _campaignId, uint256 _amount) external onlyActive(_campaignId) {
         Campaign storage campaign = campaigns[_campaignId];
-
-        require(block.timestamp >= campaign.startTime, "Campaign has not started");
-        require(block.timestamp <= campaign.endTime, "Campaign has ended");
 
         campaign.amountPledged += _amount;
 
