@@ -31,11 +31,19 @@ contract Marketplace {
 
     uint256 public saleIdCounter;
 
+    address public contractOwner;
+
     mapping(uint256 saleId => SaleInfo) public sales;
 
     event CreateSale(uint256 indexed saleId, address indexed tokenAddress, uint256 tokenPrice);
 
     event CancelSale(uint256 indexed saleId);
+
+    constructor() {
+        contractOwner = msg.sender;
+    }
+
+    receive() external payable {}
 
     function createSale(
         address _tokenAddress,
