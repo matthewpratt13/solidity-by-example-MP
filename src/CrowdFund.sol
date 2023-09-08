@@ -29,6 +29,11 @@ contract CrowdFund {
     event Pledge(uint256 indexed campaignId, address indexed caller, uint256 amount);
     event Withdraw(uint256 indexed campaignId, address indexed to, uint256 indexed amount);
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Caller is not the creator");
+        _;
+    }
+
     modifier onlyActive(uint256 campaignId) {
         Campaign memory campaign = campaigns[campaignId];
 
@@ -40,7 +45,8 @@ contract CrowdFund {
     modifier onlyInactive(uint256 campaignId) {
         Campaign memory campaign = campaigns[campaignId];
 
-        require(block.timestamp > campaign.endTime, "Campaign has not ended");
+        require(block.timestamp > campaign.endTime || block.timestamp < campaign.startTime, "Campaign is still active");
+
         _;
     }
 
@@ -49,8 +55,10 @@ contract CrowdFund {
         owner = msg.sender;
     }
 
-    function launchCampaign(uint256 _target, uint256 _startTime, uint256 _endTime, uint256 _maxDuration) external {
-        require(msg.sender == owner, "Caller is not the creator");
+    function launchCampaign(uint256 _target, uint256 _startTime, uint256 _endTime, uint256 _maxDuration)
+        external
+        onlyOwner
+    {
         require(_startTime >= block.timestamp, "Start time before now");
         require(_endTime >= _startTime, "End time before start time");
         require(_endTime <= block.timestamp + _maxDuration);
@@ -73,16 +81,12 @@ contract CrowdFund {
         emit LaunchCampaign(campaignId, msg.sender, _target, _startTime, _endTime);
     }
 
-    function cancelCampaign(uint256 _campaignId) external {
-        require(msg.sender == owner, "Caller is not the creator");
-
+    function cancelCampaign(uint256 _campaignId) external onlyOwner onlyInactive(_campaignId) {
         require(_campaignId >= campaignIdCounter, "Campaign does not exist");
 
         Campaign memory campaign = campaigns[_campaignId];
 
         require(campaign.creator == msg.sender, "Caller is not campaign creator");
-
-        require(block.timestamp < campaign.startTime, "Campaign has already started");
 
         delete campaigns[_campaignId];
 
@@ -127,9 +131,7 @@ contract CrowdFund {
         emit Withdraw(_campaignId, msg.sender, refundAmount);
     }
 
-    function withdraw(uint256 _campaignId) external onlyInactive(_campaignId) {
-        require(msg.sender == owner, "Caller is not the creator");
-
+    function withdraw(uint256 _campaignId) external onlyOwner onlyInactive(_campaignId) {
         Campaign storage campaign = campaigns[_campaignId];
 
         require(campaign.amountPledged >= campaign.target, "Amount pledged is below target");
