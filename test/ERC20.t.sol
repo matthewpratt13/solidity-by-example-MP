@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
+
 import "src/ERC20.sol";
 
 contract MockERC20 is ERC20 {
