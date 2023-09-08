@@ -13,7 +13,7 @@ contract CrowdFund {
         bool pledgesHaveBeenClaimed;
     }
 
-    ERC20 public immutable coin;
+    ERC20 public coin;
 
     uint256 public campaignIdCounter;
 
@@ -55,13 +55,18 @@ contract CrowdFund {
         owner = msg.sender;
     }
 
-    function launchCampaign(uint256 _target, uint256 _startTime, uint256 _endTime, uint256 _maxDuration)
-        external
-        onlyOwner
-    {
+    function launchCampaign(
+        address _coinAddress,
+        uint256 _target,
+        uint256 _startTime,
+        uint256 _endTime,
+        uint256 _maxDuration
+    ) external onlyOwner {
         require(_startTime >= block.timestamp, "Start time before now");
         require(_endTime >= _startTime, "End time before start time");
         require(_endTime <= block.timestamp + _maxDuration);
+
+        coin = ERC20(_coinAddress);
 
         uint256 campaignId = campaignIdCounter;
 
@@ -143,5 +148,9 @@ contract CrowdFund {
         coin.transfer(campaign.creator, campaign.amountPledged);
 
         emit Withdraw(_campaignId, campaign.creator, campaign.amountPledged);
+    }
+
+    function setCurrency(address _newCoinAddress, uint256 _campaignId) external onlyOwner onlyInactive(_campaignId) {
+        coin = ERC20(_newCoinAddress);
     }
 }
