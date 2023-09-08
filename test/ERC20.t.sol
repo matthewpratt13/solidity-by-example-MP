@@ -13,6 +13,7 @@ contract ERC20Test is Test {
 
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event Approval(address indexed owner, address indexed spender, uint256 amount);
+    event OwnershipTransferred(address indexed user, address indexed newOwner);
 
     function setUp() public {
         coin = new ERC20("Coin", "COIN", 18);
@@ -140,5 +141,20 @@ contract ERC20Test is Test {
         emit Transfer(accountA, address(0), 1_000);
 
         coin.burn(accountA, 1_000);
+    }
+
+    function testTransferOwnership() public {
+        assertEq(coin.owner(), address(this));
+
+        coin.transferOwnership(accountA);
+
+        assertEq(coin.owner(), accountA);
+    }
+
+    function testEmitOnTransferOwnership() public {
+        vm.expectEmit(true, true, false, false);
+        emit OwnershipTransferred(address(this), accountA);
+
+        coin.transferOwnership(accountA);
     }
 }
