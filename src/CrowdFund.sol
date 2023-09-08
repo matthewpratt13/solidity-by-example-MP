@@ -28,6 +28,7 @@ contract CrowdFund {
     event CancelCampaign(uint256 indexed campaignId);
     event Pledge(uint256 indexed campaignId, address indexed caller, uint256 amount);
     event Withdraw(uint256 indexed campaignId, address indexed to, uint256 indexed amount);
+    event SetCurrency(address indexed coinAddress);
     event OwnershipTransferred(address indexed user, address indexed newOwner);
 
     modifier onlyOwner() {
@@ -153,6 +154,8 @@ contract CrowdFund {
 
     function setCurrency(address _newCoinAddress, uint256 _campaignId) external onlyOwner onlyInactive(_campaignId) {
         coin = ERC20(_newCoinAddress);
+
+        emit SetCurrency(_newCoinAddress);
     }
 
     function transferOwnership(address _newOwner) external onlyOwner {
