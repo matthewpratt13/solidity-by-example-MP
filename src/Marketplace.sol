@@ -39,6 +39,10 @@ contract Marketplace {
 
     event CancelSale(uint256 indexed saleId);
 
+    event SoldOut(uint256 indexed saleId, uint256 indexed tokenId);
+
+    event BuyTokens(uint256 indexed saleId, address indexed buyer, address indexed tokenAddress);
+
     constructor() {
         contractOwner = msg.sender;
     }
@@ -95,5 +99,54 @@ contract Marketplace {
         nft.safeBatchTransferFrom(address(this), msg.sender, sale.tokenIds, sale.tokenAmountsForSale, "");
 
         emit CancelSale(_saleId);
+    }
+
+    function buy(uint256 _saleId, uint256[] memory _tokenAmountsToBuy) external payable {
+        require(_saleId <= saleIdCounter, "Sale does not exist");
+
+        SaleInfo storage sale = sales[_saleId];
+
+        require(sale.saleStatus == SaleStatus.Active, "Sale is inactive");
+
+        uint256 numberOfTokens = _tokenAmountsToBuy.length;
+
+        uint256[] memory availableTokens = new uint256[](numberOfTokens);
+
+        uint256[] memory prices = new uint256[](numberOfTokens);
+
+        uint256 totalCost;
+
+        for (uint256 i; i < numberOfTokens; ++i) {
+            availableTokens[i] = sale.tokenAmountsForSale[i] - sale.tokenAmountsSold[i];
+
+            require(_tokenAmountsToBuy[i] <= availableTokens[i], "Not enough tokens to buy");
+
+            sale.tokenAmountsForSale[i] -= _tokenAmountsToBuy[i];
+
+            sale.tokenAmountsSold[i] += _tokenAmountsToBuy[i];
+
+            prices[i] = sale.tokenPrice * _tokenAmountsToBuy[i];
+
+            totalCost += prices[i];
+
+            if (_tokenAmountsToBuy[i] == availableTokens[i]) {
+                sale.saleStatus = SaleStatus.Inactive;
+                emit SoldOut(_saleId, sale.tokenIds[i]);
+            }
+        }
+
+        require(msg.sender.balance >= totalCost, "Insufficient balance");
+
+        require(msg.value == totalCost, "Incorrect amount of ETH");
+
+        (bool success,) = address(this).call{value: msg.value}("");
+
+        require(success, "Transfer failed");
+
+        IERC1155 nft = IERC1155(sale.tokenAddress);
+
+        nft.safeBatchTransferFrom(address(this), msg.sender, sale.tokenIds, sale.tokenAmountsForSale, "");
+
+        emit BuyTokens(_saleId, msg.sender, sale.tokenAddress);
     }
 }
