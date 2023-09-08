@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./ERC20.sol";
+interface IERC20 {
+    function approve(address spender, uint256 amount) external returns (bool);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address owner) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+}
 
 contract CrowdFund {
     struct Campaign {
@@ -13,7 +19,7 @@ contract CrowdFund {
         bool pledgesHaveBeenClaimed;
     }
 
-    ERC20 public coin;
+    IERC20 private _coin;
 
     uint256 public campaignIdCounter;
 
@@ -52,22 +58,17 @@ contract CrowdFund {
     }
 
     constructor(address _coinAddress) {
-        coin = ERC20(_coinAddress);
+        _coin = IERC20(_coinAddress);
         owner = msg.sender;
     }
 
-    function launchCampaign(
-        address _coinAddress,
-        uint256 _target,
-        uint256 _startTime,
-        uint256 _endTime,
-        uint256 _maxDuration
-    ) external onlyOwner {
+    function launchCampaign(uint256 _target, uint256 _startTime, uint256 _endTime, uint256 _maxDuration)
+        external
+        onlyOwner
+    {
         require(_startTime >= block.timestamp, "Start time before now");
         require(_endTime >= _startTime, "End time before start time");
         require(_endTime <= block.timestamp + _maxDuration);
-
-        coin = ERC20(_coinAddress);
 
         uint256 campaignId = campaignIdCounter;
 
@@ -106,7 +107,7 @@ contract CrowdFund {
 
         amountPledged[_campaignId][msg.sender] += _amount;
 
-        coin.transferFrom(msg.sender, address(this), _amount);
+        _coin.transferFrom(msg.sender, address(this), _amount);
 
         emit Pledge(_campaignId, msg.sender, _amount);
     }
@@ -118,7 +119,7 @@ contract CrowdFund {
 
         amountPledged[_campaignId][msg.sender] -= _amount;
 
-        coin.transfer(msg.sender, _amount);
+        _coin.transfer(msg.sender, _amount);
 
         emit Withdraw(_campaignId, msg.sender, _amount);
     }
@@ -132,7 +133,7 @@ contract CrowdFund {
 
         amountPledged[_campaignId][msg.sender] = 0;
 
-        coin.transfer(msg.sender, refundAmount);
+        _coin.transfer(msg.sender, refundAmount);
 
         emit Withdraw(_campaignId, msg.sender, refundAmount);
     }
@@ -146,7 +147,7 @@ contract CrowdFund {
 
         campaign.pledgesHaveBeenClaimed = true;
 
-        coin.transfer(campaign.creator, campaign.amountPledged);
+        _coin.transfer(campaign.creator, campaign.amountPledged);
 
         emit Withdraw(_campaignId, campaign.creator, campaign.amountPledged);
     }
