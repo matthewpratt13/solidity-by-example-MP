@@ -57,6 +57,7 @@ contract Marketplace {
         uint256[] calldata _tokenAmountsForSale,
         uint256 _tokenPrice
     ) external {
+        require(msg.sender == contractOwner, "Caller is not the owner");
         require(_tokenAddress != address(0), "Cannot be zero address");
         require(_tokenIds.length == _tokenAmountsForSale.length, "NFT IDs and amounts do not match");
 
@@ -86,12 +87,13 @@ contract Marketplace {
     }
 
     function cancelSale(uint256 _saleId) external {
+        require(msg.sender == contractOwner, "Caller is not the owner");
+
         require(_saleId < saleIdCounter, "Sale does not exist");
 
         SaleInfo storage sale = sales[_saleId];
 
         require(sale.saleStatus == SaleStatus.Active, "Sale is inactive");
-
         require(msg.sender == sale.seller, "Caller must be sale creator");
 
         sales[_saleId].saleStatus = SaleStatus.Inactive;
@@ -167,7 +169,7 @@ contract Marketplace {
 
         require(_amount <= availableBalance, "Insufficient balance");
 
-        (bool success,) = payable(msg.sender).call{value: _amount}("");
+        (bool success,) = sale.seller.call{value: _amount}("");
 
         require(success, "Transfer failed");
 
