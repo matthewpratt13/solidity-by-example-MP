@@ -43,6 +43,8 @@ contract Marketplace {
 
     event BuyTokens(uint256 indexed saleId, address indexed buyer, address indexed tokenAddress);
 
+    event Withdraw(address indexed to, uint256 indexed amount);
+
     constructor() {
         contractOwner = msg.sender;
     }
@@ -148,5 +150,27 @@ contract Marketplace {
         nft.safeBatchTransferFrom(address(this), msg.sender, sale.tokenIds, sale.tokenAmountsForSale, "");
 
         emit BuyTokens(_saleId, msg.sender, sale.tokenAddress);
+    }
+
+    function withdraw(uint256 _saleId, uint256 _amount) external {
+        require(msg.sender == contractOwner, "Caller is not the owner");
+
+        SaleInfo memory sale = sales[_saleId];
+
+        uint256 totalNumberOfTokensSold = sale.tokenAmountsSold.length;
+
+        uint256 availableBalance;
+
+        for (uint256 i; i < totalNumberOfTokensSold; ++i) {
+            availableBalance += sale.tokenAmountsSold[i] * sale.tokenPrice;
+        }
+
+        require(_amount <= availableBalance, "Insufficient balance");
+
+        (bool success,) = payable(msg.sender).call{value: _amount}("");
+
+        require(success, "Transfer failed");
+
+        emit Withdraw(msg.sender, _amount);
     }
 }
