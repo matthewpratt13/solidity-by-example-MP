@@ -28,9 +28,10 @@ contract CrowdFund {
     event CancelCampaign(uint256 indexed campaignId);
     event Pledge(uint256 indexed campaignId, address indexed caller, uint256 amount);
     event Withdraw(uint256 indexed campaignId, address indexed to, uint256 indexed amount);
+    event OwnershipTransferred(address indexed user, address indexed newOwner);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Caller is not the creator");
+        require(msg.sender == owner, "Caller is not the owner");
         _;
     }
 
@@ -152,5 +153,11 @@ contract CrowdFund {
 
     function setCurrency(address _newCoinAddress, uint256 _campaignId) external onlyOwner onlyInactive(_campaignId) {
         coin = ERC20(_newCoinAddress);
+    }
+
+    function transferOwnership(address _newOwner) external onlyOwner {
+        owner = _newOwner;
+
+        emit OwnershipTransferred(msg.sender, _newOwner);
     }
 }
