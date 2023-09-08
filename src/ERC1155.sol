@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 contract ERC1155 {
     string private _uri;
 
+    address public contractOwner;
+
     mapping(address owner => mapping(uint256 id => uint256 amount)) private _balanceOf;
     mapping(address owner => mapping(address operator => bool isApproved)) private _isApprovedForAll;
 
@@ -15,18 +17,28 @@ contract ERC1155 {
     );
     event ApprovalForAll(address indexed owner, address indexed operator, bool isApproved);
     event URI(string value, uint256 indexed id);
+    event OwnershipTransferred(address indexed user, address indexed newOwner);
+
+    modifier onlyOwner() {
+        require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
 
     constructor(string memory uri_) {
         _uri = uri_;
+
+        contractOwner = msg.sender;
     }
 
-    function setApprovalForAll(address _operator, bool _isApproved) public {
+    function setApprovalForAll(address _operator, bool _isApproved) external {
         _isApprovedForAll[msg.sender][_operator] = _isApproved;
 
         emit ApprovalForAll(msg.sender, _operator, _isApproved);
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) public {
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data)
+        external
+    {
         require(msg.sender == _from || _isApprovedForAll[_from][msg.sender], "Caller not authorized");
 
         _balanceOf[_from][_id] -= _amount;
@@ -49,7 +61,7 @@ contract ERC1155 {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    ) public {
+    ) external {
         require(_ids.length == _amounts.length, "Lengths do not match");
 
         require(msg.sender == _from || _isApprovedForAll[_from][msg.sender], "Caller not authorized");
@@ -82,7 +94,7 @@ contract ERC1155 {
         );
     }
 
-    function _mint(address _to, uint256 _id, uint256 _amount, bytes memory _data) internal {
+    function mint(address _to, uint256 _id, uint256 _amount, bytes memory _data) external onlyOwner {
         _balanceOf[_to][_id] += _amount;
 
         emit TransferSingle(msg.sender, address(0), _to, _id, _amount);
@@ -96,7 +108,10 @@ contract ERC1155 {
         );
     }
 
-    function _batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data) internal {
+    function batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data)
+        external
+        onlyOwner
+    {
         uint256 idsLength = _ids.length;
 
         require(idsLength == _amounts.length, "Lengths do not match");
@@ -121,13 +136,13 @@ contract ERC1155 {
         );
     }
 
-    function _burn(address _from, uint256 _id, uint256 _amount) internal {
+    function burn(address _from, uint256 _id, uint256 _amount) external onlyOwner {
         _balanceOf[_from][_id] -= _amount;
 
         emit TransferSingle(msg.sender, _from, address(0), _id, _amount);
     }
 
-    function _batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) internal {
+    function batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) external onlyOwner {
         uint256 idsLength = _ids.length;
 
         require(idsLength == _amounts.length, "Lengths do not match");
@@ -144,14 +159,14 @@ contract ERC1155 {
         emit TransferBatch(msg.sender, _from, address(0), _ids, _amounts);
     }
 
-    function balanceOf(address _owner, uint256 _id) public view returns (uint256) {
+    function balanceOf(address _owner, uint256 _id) external view returns (uint256) {
         require(_owner != address(0), "Owner is zero address");
 
         return _balanceOf[_owner][_id];
     }
 
     function balanceOfBatch(address[] calldata _owners, uint256[] calldata _ids)
-        public
+        external
         view
         returns (uint256[] memory balances)
     {
@@ -167,15 +182,21 @@ contract ERC1155 {
         }
     }
 
-    function isApprovedForAll(address _owner, address _operator) public view returns (bool) {
+    function transferOwnership(address _newOwner) external onlyOwner {
+        contractOwner = _newOwner;
+
+        emit OwnershipTransferred(msg.sender, _newOwner);
+    }
+
+    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
         return _isApprovedForAll[_owner][_operator];
     }
 
-    function uri(uint256 _id) public view returns (string memory) {}
+    function uri(uint256 _id) external view returns (string memory) {}
 
     // ERC-165 interface logic
 
-    function supportsInterface(bytes4 _interfaceId) public pure returns (bool) {
+    function supportsInterface(bytes4 _interfaceId) external pure returns (bool) {
         return _interfaceId == 0x01ffc9a7 // ERC-165 Interface ID for ERC165
             || _interfaceId == 0xd9b67a26 // ERC-165 Interface ID for ERC1155
             || _interfaceId == 0x0e89341c; // ERC-165 Interface ID for ERC1155MetadataURI

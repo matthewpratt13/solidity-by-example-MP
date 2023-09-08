@@ -5,46 +5,14 @@ import "forge-std/Test.sol";
 
 import "src/ERC1155.sol";
 
-contract MockERC1155 is ERC1155 {
-    address public contractOwner;
-
-    modifier onlyOwner() {
-        require(msg.sender == contractOwner, "Caller is not the contract owner");
-        _;
-    }
-
-    constructor() ERC1155("") {
-        contractOwner = msg.sender;
-    }
-
-    function mint(address _to, uint256 _id, uint256 _amount, bytes memory _data) public onlyOwner {
-        _mint(_to, _id, _amount, _data);
-    }
-
-    function batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data)
-        public
-        onlyOwner
-    {
-        _batchMint(_to, _ids, _amounts, _data);
-    }
-
-    function burn(address _from, uint256 _id, uint256 _amount) public onlyOwner {
-        _burn(_from, _id, _amount);
-    }
-
-    function batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) public onlyOwner {
-        _batchBurn(_from, _ids, _amounts);
-    }
-}
-
 contract ERC1155Test is ERC1155TokenReceiver, Test {
-    MockERC1155 public token;
+    ERC1155 public token;
 
     address accountA = vm.addr(1);
     address accountB = vm.addr(2);
 
     function setUp() public {
-        token = new MockERC1155();
+        token = new ERC1155("");
 
         uint256[] memory ids2To4 = new uint256[](3);
         uint256[] memory amounts2To4 = new uint256[](3);
