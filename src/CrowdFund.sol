@@ -19,7 +19,7 @@ contract CrowdFund {
         bool pledgesHaveBeenClaimed;
     }
 
-    IERC20 private _coin;
+    IERC20 private immutable _COIN;
 
     uint256 public campaignIdCounter;
 
@@ -57,8 +57,8 @@ contract CrowdFund {
         _;
     }
 
-    constructor(address _coinAddress) {
-        _coin = IERC20(_coinAddress);
+    constructor(address _COINAddress) {
+        _COIN = IERC20(_COINAddress);
         owner = msg.sender;
     }
 
@@ -107,7 +107,7 @@ contract CrowdFund {
 
         amountPledged[_campaignId][msg.sender] += _amount;
 
-        _coin.transferFrom(msg.sender, address(this), _amount);
+        _COIN.transferFrom(msg.sender, address(this), _amount);
 
         emit Pledge(_campaignId, msg.sender, _amount);
     }
@@ -119,7 +119,7 @@ contract CrowdFund {
 
         amountPledged[_campaignId][msg.sender] -= _amount;
 
-        _coin.transfer(msg.sender, _amount);
+        _COIN.transfer(msg.sender, _amount);
 
         emit Withdraw(_campaignId, msg.sender, _amount);
     }
@@ -133,7 +133,7 @@ contract CrowdFund {
 
         amountPledged[_campaignId][msg.sender] = 0;
 
-        _coin.transfer(msg.sender, refundAmount);
+        _COIN.transfer(msg.sender, refundAmount);
 
         emit Withdraw(_campaignId, msg.sender, refundAmount);
     }
@@ -147,7 +147,7 @@ contract CrowdFund {
 
         campaign.pledgesHaveBeenClaimed = true;
 
-        _coin.transfer(campaign.creator, campaign.amountPledged);
+        _COIN.transfer(campaign.creator, campaign.amountPledged);
 
         emit Withdraw(_campaignId, campaign.creator, campaign.amountPledged);
     }
