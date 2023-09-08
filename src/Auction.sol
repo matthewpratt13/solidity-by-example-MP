@@ -20,7 +20,7 @@ contract Auction {
     AuctionStatus public auctionStatus;
     uint256 public endTime;
 
-    ERC721 public nft;
+    IERC721 public nft;
     address public nftAddress;
     address payable public seller;
 
@@ -72,7 +72,7 @@ contract Auction {
 
         startingPrice = _startingPrice;
 
-        nft = ERC721(nftAddress);
+        nft = IERC721(nftAddress);
 
         nft.transferFrom(msg.sender, address(this), _nftId);
 
