@@ -5,35 +5,15 @@ import "forge-std/Test.sol";
 
 import "src/ERC721.sol";
 
-contract MockERC721 is ERC721 {
-    address public contractOwner;
-
-    constructor() ERC721("Token", "NFT") {
-        contractOwner = msg.sender;
-    }
-
-    function mint(address _to, uint256 _id) public {
-        require(msg.sender == contractOwner, "Caller is not the contract owner");
-
-        _mint(_to, _id);
-    }
-
-    function burn(uint256 _id) public {
-        require(msg.sender == contractOwner, "Caller is not the contract owner");
-
-        _burn(_id);
-    }
-}
-
 contract ERC721Test is ERC721TokenReceiver, Test {
-    MockERC721 public token;
+    ERC721 public token;
 
     address accountA = vm.addr(1);
     address accountB = vm.addr(2);
 
     function setUp() public {
-        token = new MockERC721();
-        token.mint(address(this), 10);
+        token = new ERC721("Token", "NFT");
+        token.safeMint(address(this), 10, "");
     }
 
     function testERC721InvariantMetadata() public {
