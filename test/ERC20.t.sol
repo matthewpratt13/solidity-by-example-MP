@@ -143,7 +143,7 @@ contract ERC20Test is Test {
         coin.burn(accountA, 1_000);
     }
 
-    function testTransferOwnership() public {
+    function testERC20TransferOwnership() public {
         assertEq(coin.owner(), address(this));
 
         coin.transferOwnership(accountA);
@@ -151,7 +151,7 @@ contract ERC20Test is Test {
         assertEq(coin.owner(), accountA);
     }
 
-    function testEmitOnTransferOwnership() public {
+    function testEmitOnERC20TransferOwnership() public {
         vm.expectEmit(true, true, false, false);
         emit OwnershipTransferred(address(this), accountA);
 
