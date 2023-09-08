@@ -29,9 +29,17 @@ contract CrowdFund {
     event Pledge(uint256 indexed campaignId, address indexed caller, uint256 amount);
     event Withdraw(uint256 indexed campaignId, address indexed to, uint256 indexed amount);
 
-    modifier onlyActive(uint256 startTime, uint256 endTime) {
-        require(block.timestamp >= startTime, "Campaign has not started");
-        require(block.timestamp <= endTime, "Campaign has ended");
+    // modifier onlyActive(uint256 startTime, uint256 endTime) {
+    //     require(block.timestamp >= startTime, "Campaign has not started");
+    //     require(block.timestamp <= endTime, "Campaign has ended");
+    //     _;
+    // }
+
+    modifier onlyActive(uint256 campaignId) {
+        Campaign memory campaign = campaigns[campaignId];
+
+        require(block.timestamp >= campaign.startTime, "Campaign has not started");
+        require(block.timestamp <= campaign.endTime, "Campaign has ended");
         _;
     }
 
