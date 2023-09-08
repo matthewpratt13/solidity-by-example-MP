@@ -2,6 +2,8 @@
 pragma solidity 0.8.19;
 
 contract EthWallet {
+    event Withdraw(uint256 amount);
+
     address payable public owner;
 
     constructor() {
@@ -15,6 +17,8 @@ contract EthWallet {
 
         (bool success,) = payable(msg.sender).call{value: _amount}("");
         require(success, "Transfer failed");
+
+        emit Withdraw(_amount);
     }
 
     function balance() external view returns (uint256) {

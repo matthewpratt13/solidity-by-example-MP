@@ -10,6 +10,8 @@ contract EthWalletTest is Test {
 
     address nonOwner = vm.addr(1);
 
+    event Withdraw(uint256 amount);
+
     receive() external payable {}
 
     function setUp() public {
@@ -34,6 +36,13 @@ contract EthWalletTest is Test {
 
         assertEq(address(this).balance, 1.5 ether);
         assertEq(address(wallet).balance, 0.5 ether);
+    }
+
+    function testEmitOnWithdraw() public {
+        vm.expectEmit(true, false, false, false);
+        emit Withdraw(0.5 ether);
+
+        wallet.withdraw(0.5 ether);
     }
 
     function testBalance() public {
