@@ -74,4 +74,8 @@ contract ERC1155Test is ERC1155TokenReceiver, Test {
     function testERC1155BatchBurn() public {}
 
     function testEmitOnERC1155BatchBurn() public {}
+
+    function testERC1155TransferOwnership() public {}
+
+    function testEmitOnERC1155TransferOwnership() public {}
 }

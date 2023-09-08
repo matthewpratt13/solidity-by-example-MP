@@ -58,4 +58,8 @@ contract ERC721Test is ERC721TokenReceiver, Test {
     function testERC721Burn() public {}
 
     function testEmitOnERC721Burn() public {}
+
+    function testERC721TransferOwnership() public {}
+
+    function testEmitOnERC721TransferOwnership() public {}
 }
