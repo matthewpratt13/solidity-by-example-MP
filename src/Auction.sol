@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./ERC721.sol";
-
 interface IERC721 {
     function approve(address spender, uint256 id) external;
     function setApprovalForAll(address operator, bool isApproved) external;
