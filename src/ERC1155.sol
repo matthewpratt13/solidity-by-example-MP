@@ -24,15 +24,13 @@ contract ERC1155 is IERC1155 {
         contractOwner = msg.sender;
     }
 
-    function setApprovalForAll(address _operator, bool _isApproved) external {
+    function setApprovalForAll(address _operator, bool _isApproved) public {
         _isApprovedForAll[msg.sender][_operator] = _isApproved;
 
         emit ApprovalForAll(msg.sender, _operator, _isApproved);
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data)
-        external
-    {
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) public {
         require(msg.sender == _from || _isApprovedForAll[_from][msg.sender], "Caller not authorized");
 
         _balanceOf[_from][_id] -= _amount;
@@ -55,7 +53,7 @@ contract ERC1155 is IERC1155 {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    ) external {
+    ) public {
         require(_ids.length == _amounts.length, "Lengths do not match");
 
         require(msg.sender == _from || _isApprovedForAll[_from][msg.sender], "Caller not authorized");
@@ -153,7 +151,7 @@ contract ERC1155 is IERC1155 {
         emit TransferBatch(msg.sender, _from, address(0), _ids, _amounts);
     }
 
-    function balanceOf(address _owner, uint256 _id) external view returns (uint256) {
+    function balanceOf(address _owner, uint256 _id) public view returns (uint256) {
         require(_owner != address(0), "Owner is zero address");
 
         return _balanceOf[_owner][_id];
@@ -182,11 +180,11 @@ contract ERC1155 is IERC1155 {
         emit OwnershipTransferred(msg.sender, _newOwner);
     }
 
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
+    function isApprovedForAll(address _owner, address _operator) public view returns (bool) {
         return _isApprovedForAll[_owner][_operator];
     }
 
-    function uri(uint256 _id) external view returns (string memory) {}
+    function uri(uint256 _id) public view returns (string memory) {}
 
     // ERC-165 interface logic
 

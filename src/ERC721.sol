@@ -28,7 +28,7 @@ contract ERC721 is IERC721 {
         contractOwner = msg.sender;
     }
 
-    function approve(address _spender, uint256 _id) external {
+    function approve(address _spender, uint256 _id) public {
         address owner = _ownerOf[_id];
 
         require(msg.sender == owner || _isApprovedForAll[owner][msg.sender], "Caller not authorized");
@@ -38,13 +38,13 @@ contract ERC721 is IERC721 {
         emit Approval(owner, _spender, _id);
     }
 
-    function setApprovalForAll(address _operator, bool _isApproved) external {
+    function setApprovalForAll(address _operator, bool _isApproved) public {
         _isApprovedForAll[msg.sender][_operator] = _isApproved;
 
         emit ApprovalForAll(msg.sender, _operator, _isApproved);
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _id) external {
+    function safeTransferFrom(address _from, address _to, uint256 _id) public {
         transferFrom(_from, _to, _id);
 
         require(
@@ -55,7 +55,7 @@ contract ERC721 is IERC721 {
         );
     }
 
-    function safeTransferFrom(address _from, address _to, uint256 _id, bytes calldata _data) external {
+    function safeTransferFrom(address _from, address _to, uint256 _id, bytes calldata _data) public {
         transferFrom(_from, _to, _id);
 
         require(
@@ -122,23 +122,23 @@ contract ERC721 is IERC721 {
         emit OwnershipTransferred(msg.sender, _newOwner);
     }
 
-    function ownerOf(uint256 _id) external view returns (address owner) {
+    function ownerOf(uint256 _id) public view returns (address owner) {
         require((owner = _ownerOf[_id]) != address(0), "Token not minted");
     }
 
-    function balanceOf(address _owner) external view returns (uint256) {
+    function balanceOf(address _owner) public view returns (uint256) {
         require(_owner != address(0), "Owner is zero address");
 
         return _balanceOf[_owner];
     }
 
-    function getApproved(uint256 _id) external view returns (address) {
+    function getApproved(uint256 _id) public view returns (address) {
         require(_ownerOf[_id] != address(0), "Token not minted");
 
         return _approved[_id];
     }
 
-    function isApprovedForAll(address _owner, address _spender) external view returns (bool) {
+    function isApprovedForAll(address _owner, address _spender) public view returns (bool) {
         return _isApprovedForAll[_owner][_spender];
     }
 
