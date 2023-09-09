@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-contract ERC721 {
+import "./interfaces/IERC721.sol";
+
+contract ERC721 is IERC721 {
     string public name;
     string public symbol;
 
@@ -12,9 +14,6 @@ contract ERC721 {
     mapping(uint256 id => address operator) private _approved;
     mapping(address owner => mapping(address operator => bool isApproved)) private _isApprovedForAll;
 
-    event Transfer(address indexed from, address indexed to, uint256 indexed id);
-    event Approval(address indexed owner, address indexed spender, uint256 indexed id);
-    event ApprovalForAll(address indexed owner, address indexed operator, bool isApproved);
     event OwnershipTransferred(address indexed user, address indexed newOwner);
 
     modifier onlyOwner() {
@@ -168,7 +167,7 @@ contract ERC721 {
 
 // contract that accepts ERC-721 tokens
 
-contract ERC721TokenReceiver {
+contract ERC721TokenReceiver is IERC721TokenReceiver {
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
         return ERC721TokenReceiver.onERC721Received.selector;
     }

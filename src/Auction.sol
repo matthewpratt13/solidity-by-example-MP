@@ -1,15 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-interface IERC721 {
-    function approve(address spender, uint256 id) external;
-    function setApprovalForAll(address operator, bool isApproved) external;
-    function transferFrom(address from, address to, uint256 id) external;
-    function safeTransferFrom(address from, address to, uint256 id) external;
-    function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) external;
-}
+import "./interfaces/IERC721.sol";
 
-contract Auction {
+contract Auction is IERC721TokenReceiver {
     enum AuctionStatus {
         Inactive,
         Active
@@ -160,5 +154,9 @@ contract Auction {
 
     function getHighestBidder() external view returns (address) {
         return _highestBidder;
+    }
+
+    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC721TokenReceiver.onERC721Received.selector;
     }
 }
