@@ -105,22 +105,26 @@ contract Marketplace {
         emit CancelSale(_saleId);
     }
 
-    function buy(uint256 _saleId, uint256[] memory _tokenAmountsToBuy) external payable {
+    function buy(uint256 _saleId, uint256[] memory _tokenIds, uint256[] memory _tokenAmountsToBuy) external payable {
         require(_saleId <= saleIdCounter, "Sale does not exist");
+
+        require(_tokenIds.length == _tokenAmountsToBuy.length, "NFT IDs and amounts do not match");
 
         SaleInfo storage sale = sales[_saleId];
 
         require(sale.saleStatus == SaleStatus.Active, "Sale is inactive");
 
-        uint256 numberOfTokens = _tokenAmountsToBuy.length;
+        uint256 tokenAmounts = _tokenAmountsToBuy.length;
 
-        uint256[] memory availableTokens = new uint256[](numberOfTokens);
+        uint256[] memory availableTokens = new uint256[](tokenAmounts);
 
-        uint256[] memory prices = new uint256[](numberOfTokens);
+        uint256[] memory prices = new uint256[](tokenAmounts);
+
+        uint256 tokenPrice = sale.tokenPrice;
 
         uint256 totalCost;
 
-        for (uint256 i; i < numberOfTokens; ++i) {
+        for (uint256 i; i < tokenAmounts; ++i) {
             availableTokens[i] = sale.tokenAmountsForSale[i] - sale.tokenAmountsSold[i];
 
             require(_tokenAmountsToBuy[i] <= availableTokens[i], "Not enough tokens to buy");
@@ -129,7 +133,7 @@ contract Marketplace {
 
             sale.tokenAmountsSold[i] += _tokenAmountsToBuy[i];
 
-            prices[i] = sale.tokenPrice * _tokenAmountsToBuy[i];
+            prices[i] = tokenPrice * _tokenAmountsToBuy[i];
 
             totalCost += prices[i];
 
@@ -149,7 +153,7 @@ contract Marketplace {
 
         IERC1155 nft = IERC1155(sale.tokenAddress);
 
-        nft.safeBatchTransferFrom(address(this), msg.sender, sale.tokenIds, sale.tokenAmountsForSale, "");
+        nft.safeBatchTransferFrom(address(this), msg.sender, _tokenIds, _tokenAmountsToBuy, "");
 
         emit BuyTokens(_saleId, msg.sender, sale.tokenAddress);
     }
@@ -159,11 +163,11 @@ contract Marketplace {
 
         SaleInfo memory sale = sales[_saleId];
 
-        uint256 totalNumberOfTokensSold = sale.tokenAmountsSold.length;
+        uint256 totaltokenAmountsSold = sale.tokenAmountsSold.length;
 
         uint256 availableBalance;
 
-        for (uint256 i; i < totalNumberOfTokensSold; ++i) {
+        for (uint256 i; i < totaltokenAmountsSold; ++i) {
             availableBalance += sale.tokenAmountsSold[i] * sale.tokenPrice;
         }
 
