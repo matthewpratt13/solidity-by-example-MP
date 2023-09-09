@@ -14,13 +14,7 @@ interface IERC1155 {
 }
 
 contract Marketplace {
-    enum SaleStatus {
-        Inactive,
-        Active
-    }
-
     struct SaleInfo {
-        SaleStatus saleStatus;
         uint256[] tokenIds;
         uint256[] tokenAmountsForSale;
         uint256[] tokenAmountsSold;
@@ -39,7 +33,7 @@ contract Marketplace {
 
     event CancelSale(uint256 indexed saleId);
 
-    event SoldOut(uint256 indexed saleId, uint256 indexed tokenId);
+    event TokenSoldOut(uint256 indexed saleId, uint256 indexed tokenId);
 
     event BuyTokens(uint256 indexed saleId, address indexed buyer, address indexed tokenAddress);
 
@@ -66,7 +60,6 @@ contract Marketplace {
         uint256 saleId = saleIdCounter;
 
         sales[saleId] = SaleInfo({
-            saleStatus: SaleStatus.Active,
             tokenIds: _tokenIds,
             tokenAmountsForSale: _tokenAmountsForSale,
             tokenAmountsSold: tokenAmountsSold,
@@ -93,10 +86,7 @@ contract Marketplace {
 
         SaleInfo storage sale = sales[_saleId];
 
-        require(sale.saleStatus == SaleStatus.Active, "Sale is inactive");
         require(msg.sender == sale.seller, "Caller must be sale creator");
-
-        sales[_saleId].saleStatus = SaleStatus.Inactive;
 
         IERC1155 nft = IERC1155(sale.tokenAddress);
 
@@ -112,34 +102,35 @@ contract Marketplace {
 
         SaleInfo storage sale = sales[_saleId];
 
-        require(sale.saleStatus == SaleStatus.Active, "Sale is inactive");
-
         uint256 tokenAmounts = _tokenAmountsToBuy.length;
 
         uint256[] memory availableTokens = new uint256[](tokenAmounts);
-
-        uint256[] memory prices = new uint256[](tokenAmounts);
 
         uint256 tokenPrice = sale.tokenPrice;
 
         uint256 totalCost;
 
-        for (uint256 i; i < tokenAmounts; ++i) {
+        for (uint256 i; i < tokenAmounts;) {
             availableTokens[i] = sale.tokenAmountsForSale[i] - sale.tokenAmountsSold[i];
 
-            require(_tokenAmountsToBuy[i] <= availableTokens[i], "Not enough tokens to buy");
+            require(availableTokens[i] != 0, "Tokens not available");
+
+            require(availableTokens[i] >= _tokenAmountsToBuy[i], "Too few tokens available");
 
             sale.tokenAmountsForSale[i] -= _tokenAmountsToBuy[i];
 
             sale.tokenAmountsSold[i] += _tokenAmountsToBuy[i];
 
-            prices[i] = tokenPrice * _tokenAmountsToBuy[i];
-
-            totalCost += prices[i];
+            unchecked {
+                totalCost += tokenPrice * _tokenAmountsToBuy[i];
+            }
 
             if (_tokenAmountsToBuy[i] == availableTokens[i]) {
-                sale.saleStatus = SaleStatus.Inactive;
-                emit SoldOut(_saleId, sale.tokenIds[i]);
+                emit TokenSoldOut(_saleId, sale.tokenIds[i]);
+            }
+
+            unchecked {
+                ++i;
             }
         }
 
