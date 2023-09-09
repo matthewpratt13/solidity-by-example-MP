@@ -1,28 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-interface IERC1155 {
-    function setApprovalForAll(address operator, bool isApproved) external;
-    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external;
-    function safeBatchTransferFrom(
-        address from,
-        address to,
-        uint256[] calldata ids,
-        uint256[] calldata amounts,
-        bytes calldata data
-    ) external;
-}
+import "./interfaces/IERC1155.sol";
 
-interface IERC1155TokenReceiver {
-    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4);
-
-    function onERC1155BatchReceived(address, address, uint256[] calldata, bytes calldata)
-        external
-        pure
-        returns (bytes4);
-}
-
-contract Marketplace {
+contract Marketplace is IERC1155TokenReceiver {
     struct SaleInfo {
         uint256[] tokenIds;
         uint256[] tokenAmountsForSale;

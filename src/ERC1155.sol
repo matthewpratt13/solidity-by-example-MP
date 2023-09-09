@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-contract ERC1155 {
+import "./interfaces/IERC1155.sol";
+
+contract ERC1155 is IERC1155 {
     string private _uri;
 
     address public contractOwner;
@@ -9,14 +11,6 @@ contract ERC1155 {
     mapping(address owner => mapping(uint256 id => uint256 amount)) private _balanceOf;
     mapping(address owner => mapping(address operator => bool isApproved)) private _isApprovedForAll;
 
-    event TransferSingle(
-        address indexed operator, address indexed from, address indexed to, uint256 id, uint256 amount
-    );
-    event TransferBatch(
-        address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] amounts
-    );
-    event ApprovalForAll(address indexed owner, address indexed operator, bool isApproved);
-    event URI(string value, uint256 indexed id);
     event OwnershipTransferred(address indexed user, address indexed newOwner);
 
     modifier onlyOwner() {
@@ -205,7 +199,7 @@ contract ERC1155 {
 
 // contract that accepts ERC-1155 tokens
 
-contract ERC1155TokenReceiver {
+contract ERC1155TokenReceiver is IERC1155TokenReceiver {
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4) {
         return ERC1155TokenReceiver.onERC1155Received.selector;
     }
