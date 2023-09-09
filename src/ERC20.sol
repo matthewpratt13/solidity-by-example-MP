@@ -29,7 +29,7 @@ contract ERC20 {
         owner = msg.sender;
     }
 
-    function approve(address _spender, uint256 _amount) external returns (bool) {
+    function approve(address _spender, uint256 _amount) public returns (bool) {
         _allowance[msg.sender][_spender] = _amount;
 
         emit Approval(msg.sender, _spender, _amount);
@@ -37,7 +37,7 @@ contract ERC20 {
         return true;
     }
 
-    function transfer(address _to, uint256 _amount) external returns (bool) {
+    function transfer(address _to, uint256 _amount) public returns (bool) {
         _balanceOf[msg.sender] -= _amount;
 
         // cannot overflow because total balances cannot exceed `type(uint256).max`
@@ -50,7 +50,7 @@ contract ERC20 {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _amount) external returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _amount) public returns (bool) {
         _allowance[_from][msg.sender] -= _amount;
 
         _balanceOf[_from] -= _amount;
@@ -65,13 +65,13 @@ contract ERC20 {
         return true;
     }
 
-    function balanceOf(address _owner) external view returns (uint256) {
+    function balanceOf(address _owner) public view returns (uint256) {
         require(_owner != address(0), "Owner is zero address");
 
         return _balanceOf[_owner];
     }
 
-    function allowance(address _owner, address _spender) external view returns (uint256) {
+    function allowance(address _owner, address _spender) public view returns (uint256) {
         return _allowance[_owner][_spender];
     }
 
