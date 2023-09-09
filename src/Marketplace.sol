@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 interface IERC1155 {
     function setApprovalForAll(address operator, bool isApproved) external;
-    function safeTransferFrom(address from, address to, uint256 id, bytes calldata data) external;
+    function safeTransferFrom(address from, address to, uint256 id, uint256 amount, bytes calldata data) external;
     function safeBatchTransferFrom(
         address from,
         address to,
@@ -168,6 +168,6 @@ contract Marketplace {
 
         require(success, "Transfer failed");
 
-        emit Withdraw(msg.sender, _amount);
+        emit Withdraw(sale.seller, _amount);
     }
 }
