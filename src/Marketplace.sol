@@ -13,6 +13,15 @@ interface IERC1155 {
     ) external;
 }
 
+interface IERC1155TokenReceiver {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4);
+
+    function onERC1155BatchReceived(address, address, uint256[] calldata, bytes calldata)
+        external
+        pure
+        returns (bytes4);
+}
+
 contract Marketplace {
     struct SaleInfo {
         uint256[] tokenIds;
@@ -22,6 +31,8 @@ contract Marketplace {
         address tokenAddress;
         address seller;
     }
+
+    IERC1155 public nft;
 
     uint256 public saleIdCounter;
 
@@ -72,7 +83,7 @@ contract Marketplace {
             ++saleIdCounter;
         }
 
-        IERC1155 nft = IERC1155(_tokenAddress);
+        nft = IERC1155(_tokenAddress);
 
         nft.safeBatchTransferFrom(msg.sender, address(this), _tokenIds, _tokenAmountsForSale, "");
 
@@ -84,13 +95,9 @@ contract Marketplace {
 
         require(_saleId < saleIdCounter, "Sale does not exist");
 
-        SaleInfo storage sale = sales[_saleId];
+        SaleInfo memory sale = sales[_saleId];
 
-        require(msg.sender == sale.seller, "Caller must be sale creator");
-
-        IERC1155 nft = IERC1155(sale.tokenAddress);
-
-        nft.safeBatchTransferFrom(address(this), msg.sender, sale.tokenIds, sale.tokenAmountsForSale, "");
+        nft.safeBatchTransferFrom(address(this), sale.seller, sale.tokenIds, sale.tokenAmountsForSale, "");
 
         emit CancelSale(_saleId);
     }
@@ -142,8 +149,6 @@ contract Marketplace {
 
         require(success, "Transfer failed");
 
-        IERC1155 nft = IERC1155(sale.tokenAddress);
-
         nft.safeBatchTransferFrom(address(this), msg.sender, _tokenIds, _tokenAmountsToBuy, "");
 
         emit BuyTokens(_saleId, msg.sender, sale.tokenAddress);
@@ -169,5 +174,17 @@ contract Marketplace {
         require(success, "Transfer failed");
 
         emit Withdraw(sale.seller, _amount);
+    }
+
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC1155TokenReceiver.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external
+        pure
+        returns (bytes4)
+    {
+        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
     }
 }
