@@ -19,15 +19,11 @@ contract Marketplace is IERC1155TokenReceiver {
     address public contractOwner;
 
     mapping(uint256 saleId => SaleInfo) public sales;
-
     mapping(uint256 saleId => mapping(uint256 tokenId => bool soldOut)) public tokenSoldOut;
 
     event CreateSale(uint256 indexed saleId, address indexed tokenAddress, uint256 tokenPrice);
-
     event CancelSale(uint256 indexed saleId);
-
     event TokenSoldOut(uint256 indexed saleId, uint256 indexed tokenId);
-
     event BuyTokens(uint256 indexed saleId, address indexed buyer, address indexed tokenAddress);
 
     constructor() {
@@ -35,10 +31,11 @@ contract Marketplace is IERC1155TokenReceiver {
     }
 
     function createSale(
-        address _tokenAddress,
         uint256[] calldata _tokenIds,
         uint256[] calldata _tokenAmounts,
-        uint256 _tokenPrice
+        uint256 _tokenPrice,
+        address _tokenAddress,
+        address _seller
     ) external {
         require(msg.sender == contractOwner, "Caller is not the owner");
         require(_tokenAddress != address(0), "Cannot be zero address");
@@ -51,7 +48,7 @@ contract Marketplace is IERC1155TokenReceiver {
             tokenAmounts: _tokenAmounts,
             tokenPrice: _tokenPrice,
             tokenAddress: _tokenAddress,
-            seller: msg.sender
+            seller: _seller
         });
 
         unchecked {
@@ -67,7 +64,6 @@ contract Marketplace is IERC1155TokenReceiver {
 
     function cancelSale(uint256 _saleId) external {
         require(msg.sender == contractOwner, "Caller is not the owner");
-
         require(_saleId < saleIdCounter, "Sale does not exist");
 
         SaleInfo memory sale = sales[_saleId];
@@ -79,10 +75,9 @@ contract Marketplace is IERC1155TokenReceiver {
 
     function buy(uint256 _saleId, uint256[] memory _tokenIds, uint256[] memory _tokenAmountsToBuy) external payable {
         require(_saleId <= saleIdCounter, "Sale does not exist");
-
         require(_tokenIds.length == _tokenAmountsToBuy.length, "NFT IDs and amounts do not match");
 
-        SaleInfo storage sale = sales[_saleId];
+        SaleInfo memory sale = sales[_saleId];
 
         uint256 tokenAmounts = _tokenAmountsToBuy.length;
 
@@ -105,7 +100,6 @@ contract Marketplace is IERC1155TokenReceiver {
         }
 
         require(msg.sender.balance >= totalCost, "Insufficient balance");
-
         require(msg.value == totalCost, "Incorrect amount of ETH");
 
         (bool success,) = sale.seller.call{value: msg.value}("");
@@ -118,7 +112,7 @@ contract Marketplace is IERC1155TokenReceiver {
     }
 
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4) {
-        return IERC1155TokenReceiver.onERC1155Received.selector;
+        return this.onERC1155Received.selector;
     }
 
     function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
@@ -126,6 +120,6 @@ contract Marketplace is IERC1155TokenReceiver {
         pure
         returns (bytes4)
     {
-        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
+        return this.onERC1155BatchReceived.selector;
     }
 }
