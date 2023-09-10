@@ -91,11 +91,8 @@ contract Marketplace is IERC1155TokenReceiver {
         uint256 totalCost;
 
         for (uint256 i; i < tokenAmounts;) {
+            require(sale.tokenAmounts[i] != 0, "No tokens for sale");
             require(!tokenSoldOut[_saleId][_tokenIds[i]], "Token sold out");
-
-            unchecked {
-                totalCost += tokenPrice * _tokenAmountsToBuy[i];
-            }
 
             if (_tokenAmountsToBuy[i] == sale.tokenAmounts[i]) {
                 tokenSoldOut[_saleId][_tokenIds[i]] = true;
@@ -103,6 +100,7 @@ contract Marketplace is IERC1155TokenReceiver {
             }
 
             unchecked {
+                totalCost += tokenPrice * _tokenAmountsToBuy[i];
                 ++i;
             }
         }
