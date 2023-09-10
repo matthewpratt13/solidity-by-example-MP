@@ -126,35 +126,13 @@ contract Marketplace is IERC1155TokenReceiver {
 
         require(msg.value == totalCost, "Incorrect amount of ETH");
 
-        (bool success,) = address(this).call{value: msg.value}("");
+        (bool success,) = sale.seller.call{value: msg.value}("");
 
         require(success, "Transfer failed");
 
         nft.safeBatchTransferFrom(address(this), msg.sender, _tokenIds, _tokenAmountsToBuy, "");
 
         emit BuyTokens(_saleId, msg.sender, sale.tokenAddress);
-    }
-
-    function withdraw(uint256 _saleId, uint256 _amount) external {
-        require(msg.sender == contractOwner, "Caller is not the owner");
-
-        SaleInfo memory sale = sales[_saleId];
-
-        uint256 totaltokenAmountsSold = sale.tokenAmountsSold.length;
-
-        uint256 availableBalance;
-
-        for (uint256 i; i < totaltokenAmountsSold; ++i) {
-            availableBalance += sale.tokenAmountsSold[i] * sale.tokenPrice;
-        }
-
-        require(_amount <= availableBalance, "Insufficient balance");
-
-        (bool success,) = sale.seller.call{value: _amount}("");
-
-        require(success, "Transfer failed");
-
-        emit Withdraw(sale.seller, _amount);
     }
 
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external pure returns (bytes4) {
