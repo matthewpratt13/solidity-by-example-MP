@@ -35,8 +35,6 @@ contract Marketplace is IERC1155TokenReceiver {
         contractOwner = msg.sender;
     }
 
-    receive() external payable {}
-
     function createSale(
         address _tokenAddress,
         uint256[] calldata _tokenIds,
