@@ -6,8 +6,7 @@ import "./interfaces/IERC1155.sol";
 contract Marketplace is IERC1155TokenReceiver {
     struct SaleInfo {
         uint256[] tokenIds;
-        uint256[] tokenAmountsForSale;
-        uint256[] tokenAmountsSold;
+        uint256[] tokenAmounts;
         uint256 tokenPrice;
         address tokenAddress;
         address seller;
@@ -20,6 +19,8 @@ contract Marketplace is IERC1155TokenReceiver {
     address public contractOwner;
 
     mapping(uint256 saleId => SaleInfo) public sales;
+
+    mapping(uint256 saleId => mapping(uint256 tokenId => bool soldOut)) public tokenSoldOut;
 
     event CreateSale(uint256 indexed saleId, address indexed tokenAddress, uint256 tokenPrice);
 
@@ -36,21 +37,18 @@ contract Marketplace is IERC1155TokenReceiver {
     function createSale(
         address _tokenAddress,
         uint256[] calldata _tokenIds,
-        uint256[] calldata _tokenAmountsForSale,
+        uint256[] calldata _tokenAmounts,
         uint256 _tokenPrice
     ) external {
         require(msg.sender == contractOwner, "Caller is not the owner");
         require(_tokenAddress != address(0), "Cannot be zero address");
-        require(_tokenIds.length == _tokenAmountsForSale.length, "NFT IDs and amounts do not match");
-
-        uint256[] memory tokenAmountsSold = new uint256[](_tokenIds.length);
+        require(_tokenIds.length == _tokenAmounts.length, "NFT IDs and amounts do not match");
 
         uint256 saleId = saleIdCounter;
 
         sales[saleId] = SaleInfo({
             tokenIds: _tokenIds,
-            tokenAmountsForSale: _tokenAmountsForSale,
-            tokenAmountsSold: tokenAmountsSold,
+            tokenAmounts: _tokenAmounts,
             tokenPrice: _tokenPrice,
             tokenAddress: _tokenAddress,
             seller: msg.sender
@@ -62,7 +60,7 @@ contract Marketplace is IERC1155TokenReceiver {
 
         nft = IERC1155(_tokenAddress);
 
-        nft.safeBatchTransferFrom(msg.sender, address(this), _tokenIds, _tokenAmountsForSale, "");
+        nft.safeBatchTransferFrom(msg.sender, address(this), _tokenIds, _tokenAmounts, "");
 
         emit CreateSale(saleId, _tokenAddress, _tokenPrice);
     }
@@ -74,7 +72,7 @@ contract Marketplace is IERC1155TokenReceiver {
 
         SaleInfo memory sale = sales[_saleId];
 
-        nft.safeBatchTransferFrom(address(this), sale.seller, sale.tokenIds, sale.tokenAmountsForSale, "");
+        nft.safeBatchTransferFrom(address(this), sale.seller, sale.tokenIds, sale.tokenAmounts, "");
 
         emit CancelSale(_saleId);
     }
@@ -88,28 +86,19 @@ contract Marketplace is IERC1155TokenReceiver {
 
         uint256 tokenAmounts = _tokenAmountsToBuy.length;
 
-        uint256[] memory availableTokens = new uint256[](tokenAmounts);
-
         uint256 tokenPrice = sale.tokenPrice;
 
         uint256 totalCost;
 
         for (uint256 i; i < tokenAmounts;) {
-            availableTokens[i] = sale.tokenAmountsForSale[i] - sale.tokenAmountsSold[i];
-
-            require(availableTokens[i] != 0, "Tokens not available");
-
-            require(availableTokens[i] >= _tokenAmountsToBuy[i], "Too few tokens available");
-
-            sale.tokenAmountsForSale[i] -= _tokenAmountsToBuy[i];
-
-            sale.tokenAmountsSold[i] += _tokenAmountsToBuy[i];
+            require(!tokenSoldOut[_saleId][_tokenIds[i]], "Token sold out");
 
             unchecked {
                 totalCost += tokenPrice * _tokenAmountsToBuy[i];
             }
 
-            if (_tokenAmountsToBuy[i] == availableTokens[i]) {
+            if (_tokenAmountsToBuy[i] == sale.tokenAmounts[i]) {
+                tokenSoldOut[_saleId][_tokenIds[i]] = true;
                 emit TokenSoldOut(_saleId, sale.tokenIds[i]);
             }
 
