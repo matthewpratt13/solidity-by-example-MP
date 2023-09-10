@@ -29,8 +29,6 @@ contract Marketplace is IERC1155TokenReceiver {
 
     event BuyTokens(uint256 indexed saleId, address indexed buyer, address indexed tokenAddress);
 
-    event Withdraw(address indexed to, uint256 indexed amount);
-
     constructor() {
         contractOwner = msg.sender;
     }
